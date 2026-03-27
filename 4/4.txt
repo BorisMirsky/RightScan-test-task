@@ -1,8 +1,59 @@
 Задача №4.
+
 Дано:
 Таблица tasks:
 | id | status | updated_at |
+
 Задача:
 Написать SQL-запрос:
-● найти все задачи в статусе IN_PROGRESS
-● которые не обновлялись более 10 минут
+- найти все задачи в статусе IN_PROGRESS
+- которые не обновлялись более 10 минут
+
+
+----------------------------------------------------------------------
+
+Пусть у нас СУБД SQL MS Server.
+Предполагаем, что тип данных:
+- колонка status строковый, например VAR
+- колонка updated_at - Datetime
+
+Недостаточно инструкций, чтобы понять что именно нужно - все записи, отвечающие условию
+или только последнее текущее значение. Поэтому два решения:
+
+Решение 1 (таблица хранит только текущее состояние задачи)
+SELECT id 
+FROM tasks 
+WHERE status = 'IN_PROGRESS'
+
+SELECT id 
+FROM tasks 
+WHERE updated_at < DATEADD(minute, -10, GETDATE())
+
+
+Решение 2 (таблица хранит историю изменений статусов)
+Задача могла обновиться и закончиться, поэтому нет смысла вытаскивать старые строки,
+забираем только задачи с последним статусом "IN_PROGRESS"
+
+WITH latest AS (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) as rn
+    FROM tasks
+)
+SELECT id
+FROM latest
+WHERE rn = 1
+  AND status = 'IN_PROGRESS'
+
+
+WITH latest AS (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) as rn
+    FROM tasks
+)
+SELECT id
+FROM latest
+WHERE rn = 1
+  AND updated_at < DATEADD(minute, -10, GETDATE())
+
+
+

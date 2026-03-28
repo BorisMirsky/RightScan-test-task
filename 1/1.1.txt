@@ -1,0 +1,166 @@
+1. Рабочая схема (WMS → API → робот → API → WMS)
+
+Текстовая последовательность:
+
+WMS формирует задание
+Например: переместить коробку из ячейки A в ячейку B
+WMS присваивает task_id
+WMS отправляет задание в API робота с параметрами: POST /tasks(task_id, тип операции, координаты, приоритет)
+API принимает задание
+валидирует данные
+сохраняет в БД
+ставит статус NEW
+кладёт в очередь роботов
+Робот запрашивает задания: GET /tasks/next?robot_id=R1
+API выбирает подходящее задание
+статус меняется на ASSIGNED
+Робот начинает выполнение
+отправляет статус IN_PROGRESS
+API обновляет БД
+Робот выполняет действие
+перемещает товар
+сканирует штрихкод
+подтверждает выполнение
+Робот отправляет финальный статус
+DONE или FAILED
+API принимает статус
+обновляет запись
+отправляет callback в WMS
+WMS получает результат
+обновляет состояние заказа
+логирует выполнение
+
+
+2. Основные сущности системы с полями
+
+1. Task (Задание)
+task_id
+type
+source_location
+target_location
+priority
+status
+created_at
+updated_at
+
+2. Robot (Робот)
+robot_id
+status (idle/busy/offline)
+battery_level
+current_location
+last_seen
+
+3. Order (Заказ WMS)
+order_id
+список tasks
+статус заказа
+
+4. Task Assignment (Назначение задания)
+task_id
+robot_id
+assigned_at
+
+5. Status Event (Событие статуса)
+event_id
+task_id
+robot_id
+status
+timestamp
+payload
+
+6. Error Log
+error_id
+task_id
+robot_id
+error_code
+message
+created_at
+
+
+
+3. Возможные статусы задания 
+
+Типичный жизненный цикл:
+
+NEW
+↓
+QUEUED
+↓
+ASSIGNED
+↓
+IN_PROGRESS
+↓
+DONE
+
+С ошибками:
+
+NEW
+↓
+ASSIGNED
+↓
+IN_PROGRESS
+↓
+FAILED
+
+Полный список статусов:
+
+NEW — создано WMS
+QUEUED — в очереди на выполнение
+ASSIGNED — назначено роботу
+IN_PROGRESS — робот выполняет
+DONE — успешно выполнено
+FAILED — ошибка выполнения
+CANCELLED — отменено WMS
+TIMEOUT — робот не ответил
+RETRY — повторная попытка
+LOST — задание потеряно
+
+
+4. Причины потери заданий 
+
+1. Сетевые проблемы
+WMS отправил → API не получил
+API ответил → WMS не получил ACK
+робот получил → статус не отправился
+
+2. Нет идемпотентности
+дублирующиеся task_id
+перезапись задания
+race condition
+
+3. Проблемы очереди
+сообщение упало из очереди
+TTL истёк
+очередь переполнена
+
+4. Ошибка транзакций БД
+задание выдано роботу, но commit не прошёл
+статус обновился частично
+
+5. Робот "забрал" задание, но умер
+power off
+потеря Wi-Fi
+reboot
+
+6. Нет heartbeat робота
+система думает, что робот выполняет
+робот уже недоступен
+
+7. Некорректная логика retry
+задача упала, но не вернулась в очередь
+задача застряла в IN_PROGRESS
+
+8. Проблемы callback в WMS
+API отправил результат
+WMS не принял
+нет retry отправки
+Как обычно решают такие проблемы 
+idempotency key
+retry с exponential backoff
+heartbeat роботов
+watchdog timeout
+DLQ (dead letter queue)
+event log
+correlation_id
+distributed tracing
+

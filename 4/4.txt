@@ -12,15 +12,19 @@
 
 ----------------------------------------------------------------------
 
-Пусть у нас СУБД SQL MS Server.
-Предполагаем, что тип данных:
-- колонка status строковый, например VAR
-- колонка updated_at - Datetime
+Пусть у нас СУБД SQL MS Server. Предполагаем, что тип данных:
+- id - int
+- status - varchar(10)
+- updated_at - Datetime
 
-Недостаточно инструкций, чтобы понять что именно нужно - все записи, отвечающие условию
-или только последнее текущее значение. Поэтому два решения:
+Из условия немного непонятно, что именно нужно:
+- все записи, отвечающие условию
+- только последнее текущее значение. 
 
-Решение 1 (таблица хранит только текущее состояние задачи)
+Поэтому два решения.
+
+Решение 1 (таблица хранит только текущее состояние задачи, т.е. на каждый id одна запись)
+
 SELECT id 
 FROM tasks 
 WHERE status = 'IN_PROGRESS'
@@ -31,29 +35,24 @@ WHERE updated_at < DATEADD(minute, -10, GETDATE())
 
 
 Решение 2 (таблица хранит историю изменений статусов)
-Задача могла обновиться и закончиться, поэтому нет смысла вытаскивать старые строки,
-забираем только задачи с последним статусом "IN_PROGRESS"
 
-WITH latest AS (
-    SELECT *,
-           ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) as rn
+Меняем запрос только к 1й задаче: для каждой задачи (для каждого id) берём запись последнюю по времени обновления и со статусом == "IN_PROGRESS"
+
+WITH LastInProgress AS (
+    SELECT 
+        id,
+        status,
+        updated_at,
+        ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) AS rn
     FROM tasks
+    WHERE status = 'IN_PROGRESS'
 )
-SELECT id
-FROM latest
-WHERE rn = 1
-  AND status = 'IN_PROGRESS'
+SELECT id, status, updated_at
+FROM LastInProgress
+WHERE rn = 1;
 
 
-WITH latest AS (
-    SELECT *,
-           ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) as rn
-    FROM tasks
-)
-SELECT id
-FROM latest
-WHERE rn = 1
-  AND updated_at < DATEADD(minute, -10, GETDATE())
+
 
 
 

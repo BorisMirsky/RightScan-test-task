@@ -1,13 +1,6 @@
-import asyncio
-import logging
-from datetime import datetime, timedelta
-from typing import List, Dict, Optional
-from enum import Enum
 
-import httpx
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel, Field
-import uvicorn
+import logging
+
 
 # Настройка логирования
 logging.basicConfig(

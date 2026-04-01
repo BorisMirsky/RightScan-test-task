@@ -54,22 +54,22 @@ def main():
         
         print("\n" + "=" * 60)
         if stuck_tasks:
-            print(f"⚠️  НАЙДЕНО ЗАВИСШИХ ЗАДАЧ: {len(stuck_tasks)}")
+            print(f"НАЙДЕНО ЗАВИСШИХ ЗАДАЧ: {len(stuck_tasks)}")
             print("=" * 60)
             for task in stuck_tasks:
                 print(f"\n  ID: {task['id']}")
                 print(f"  Статус: {task['status']}")
                 print(f"  Последнее обновление: {task['updated_at']}")
         else:
-            print("✅ ЗАВИСШИХ ЗАДАЧ НЕ ОБНАРУЖЕНО")
+            print("ЗАВИСШИХ ЗАДАЧ НЕ ОБНАРУЖЕНО")
         print("=" * 60)
             
     except requests.exceptions.Timeout:
-        print("\n❌ ТАЙМАУТ: Сервер не отвечает")
+        print("\n ТАЙМАУТ: Сервер не отвечает")
     except requests.exceptions.ConnectionError as e:
-        print(f"\n❌ ОШИБКА ПОДКЛЮЧЕНИЯ: {e}")
+        print(f"\n ОШИБКА ПОДКЛЮЧЕНИЯ: {e}")
     except Exception as e:
-        print(f"\n❌ ОШИБКА: {e}")
+        print(f"\n ОШИБКА: {e}")
 
 
 if __name__ == "__main__":

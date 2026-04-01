@@ -1,15 +1,10 @@
-#import asyncio
+
 import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 from enum import Enum
 
-#import httpx
-#from fastapi import FastAPI, HTTPException, status
-#from pydantic import BaseModel, Field
-#import uvicorn
 
-#import logging_config
 from models import Task, TaskStatus, TaskCreate, TaskResponse
 
 
@@ -84,15 +79,12 @@ class MockRobotAPI:
         )
     
     def get_all_tasks(self) -> List[Task]:
-        """Получить все задачи"""
         return list(self.tasks.values())
     
     def get_task(self, task_id: int) -> Optional[Task]:
-        """Получить задачу по ID"""
         return self.tasks.get(task_id)
     
     def create_task(self, description: str, priority: int) -> Task:
-        """Создать новую задачу"""
         now = datetime.now()
         task = Task(
             id=self.next_id,
@@ -108,10 +100,8 @@ class MockRobotAPI:
         return task
     
     def update_task_status(self, task_id: int, status: TaskStatus) -> Optional[Task]:
-        """Обновить статус задачи (имитация работы робота)"""
         if task_id not in self.tasks:
-            return None
-        
+            return None     
         task = self.tasks[task_id]
         task.status = status
         task.updated_at = datetime.now()

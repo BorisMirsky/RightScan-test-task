@@ -45,7 +45,6 @@ class RobotRequestHandler(BaseHTTPRequestHandler):
 def main():
     global server
     signal.signal(signal.SIGINT, signal_handler)
-    
     server = HTTPServer(('127.0.0.1', 8000), RobotRequestHandler)
     print("=" * 60)
     print("Сервер запущен на http://127.0.0.1:8000")
@@ -61,3 +60,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+

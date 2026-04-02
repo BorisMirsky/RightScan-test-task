@@ -1,5 +1,5 @@
-# WriteScan-test-task
-Тестовое задания для компании WriteScan.
+# RightScan-test-task
+Тестовое задания для компании RightScan.
 
 
 Решения задач 1,2,4,5,6 лежат в соответствующих файлах .txt.
